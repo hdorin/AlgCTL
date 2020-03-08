@@ -3,6 +3,7 @@
 #include<cstring>
 
 #define FORMULA_MAX_LEN 100
+#define MAX_LABELS_COUNT 20
 
 /*
 EXp
@@ -19,6 +20,7 @@ struct kripkeStructure {
 	char worldsNames[100][10];
 	bool worldsRelations[100][100];
 	char wordlsLabels[100][20];
+	char allLabels[20]="";
 };
 void readKripreStructure(kripkeStructure &ks) {
 	char aux[100], *auxp;
@@ -43,6 +45,10 @@ void readKripreStructure(kripkeStructure &ks) {
 		do {
 			j++;
 			f >> ks.wordlsLabels[i][j];
+			if (ks.wordlsLabels[i][j] != '-' && !strchr(ks.allLabels, ks.wordlsLabels[i][j])) {
+				ks.allLabels[strlen(ks.allLabels)+1]='\0';
+				ks.allLabels[strlen(ks.allLabels)] = ks.wordlsLabels[i][j];
+			}
 		} while (ks.wordlsLabels[i][j] != '-');
 		ks.wordlsLabels[i][j] = '\0';
 	}
@@ -75,11 +81,11 @@ void readKripreStructure(kripkeStructure &ks) {
 }
 void printKripkeStructure(kripkeStructure ks) {
 	int i, j;
-	cout << ks.worldsCount << endl;
+	cout <<"Worlds count="<< ks.worldsCount << endl;
 	for (i = 0; i < ks.worldsCount; i++) {
 		cout << ks.worldsNames[i] << " ";
 	}
-	cout << endl;
+	cout <<"Labels:"<< endl;
 	for (i = 0; i < ks.worldsCount; i++) {
 		if (strlen(ks.wordlsLabels[i]) == 0) {
 			cout << "-" << endl;
@@ -88,6 +94,8 @@ void printKripkeStructure(kripkeStructure ks) {
 			cout << ks.wordlsLabels[i] << endl;
 		}
 	}
+	cout << "All labels:"<< ks.allLabels << endl;
+	cout << "Relations:"<< endl;
 	for (i = 0; i < ks.worldsCount; i++) {
 		for (j = 0; j < ks.worldsCount; j++) {
 			cout << ks.worldsRelations[i][j] << " ";
@@ -95,6 +103,9 @@ void printKripkeStructure(kripkeStructure ks) {
 		cout << endl;
 	}
 	cout << endl;
+}
+bool isWorldLabel(kripkeStructure ks, char character) {
+	return strchr(ks.allLabels, character);
 }
 void operatorPre(kripkeStructure ks, int currentWorld, bool previousWorlds[100]) {
 	int i;
@@ -116,17 +127,7 @@ void operatorPreE(kripkeStructure ks, char label, bool previousWorlds[100]) {
 		}
 	}
 }
-void operatorPreENot(kripkeStructure ks, char label, bool previousWorlds[100]) {
-	int i, j;
-	for (i = 0; i < ks.worldsCount; i++) {
-		previousWorlds[i] = false;
-		for (j = 0; j < ks.worldsCount; j++) {
-			if (!strchr(ks.wordlsLabels[j], label) && ks.worldsRelations[i][j] == true) {
-				previousWorlds[i] = true;
-			}
-		}
-	}
-}
+
 void readFormula(char formula[100]) {
 	ifstream f("formula.txt");
 	f.get(formula, 100);
@@ -150,26 +151,38 @@ void checkFormula(char formula[100]) {
 	strncpy_s(formula, FORMULA_MAX_LEN, auxFormula + 1, flen - 2);
 	flen -= 2;
 }
+void convertListToString(kripkeStructure ks, bool boolList[100],char resultingString[100]) {
+	strcpy_s(resultingString,FORMULA_MAX_LEN,"{");
+	for (int i = 0; i < ks.worldsCount; i++) {
+		if (boolList[i] == true) {
+			strcat_s(resultingString, FORMULA_MAX_LEN, ks.worldsNames[i]);
+			strcat_s(resultingString, FORMULA_MAX_LEN, ",");
+		}
+	}
+	resultingString[strlen(resultingString) - 1] = '\0';
+	strcat_s(resultingString, FORMULA_MAX_LEN, "}");
+}
+void replaceInFormula(char *formula,int nrOfCharsToReplace,char Source[100]) {
+	char auxFormula[100];
+	strcpy_s(auxFormula, FORMULA_MAX_LEN, formula + nrOfCharsToReplace);
+	strcpy_s(formula, FORMULA_MAX_LEN, Source);
+	strcpy_s(formula + strlen(Source), FORMULA_MAX_LEN, auxFormula);
+}
 void processFormula(kripkeStructure ks, char *formula) {
 	int i;
 	if (strncmp(formula, "EX", 2) == 0) {
 		if (formula[2] != '{') {
 			bool previousWorlds[100];
-			char auxResult[100] = "{";
-			char auxFormula[100];
+			char auxResult[100];
 			operatorPreE(ks, *(formula + 2), previousWorlds);
-			for (int i = 0; i < ks.worldsCount; i++) {
-				if (previousWorlds[i] == true) {
-					strcat_s(auxResult, FORMULA_MAX_LEN, ks.worldsNames[i]);
-					strcat_s(auxResult, FORMULA_MAX_LEN, ",");
-				}
-			}
-			auxResult[strlen(auxResult) - 1] = '\0';
-			strcat_s(auxResult, FORMULA_MAX_LEN, "}");
-			strcpy_s(auxFormula, FORMULA_MAX_LEN, formula + 3);
-			strcpy_s(formula, FORMULA_MAX_LEN, auxResult);
-			strcpy_s(formula + strlen(auxResult), FORMULA_MAX_LEN, auxFormula);
+			convertListToString(ks, previousWorlds, auxResult);
+			replaceInFormula(formula, 3, auxResult);
 		}
+		
+	}
+	else if(isWorldLabel(ks,*formula)){
+
+
 	}
 
 }
