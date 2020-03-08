@@ -8,6 +8,11 @@
 
 /*
 - sa adaug prioritate ca parametru
+- cand termin EX sa apelez din nou process
+	- daca formula incepe cu {, apelez procecess de la }+1 cu prioritate 2
+	- daca gasesc ^, apelez ^+1 cu prioritate 2
+		- voi gasit q, il convertesc
+		- ma intorc la ^ si aplic operatia
 */
 
 using namespace std;
@@ -119,13 +124,13 @@ void operatorPreE(kripkeStructure ks, bool suitableWorlds[100], bool previousWor
 	for (i = 0; i < ks.worldsCount; i++) {
 		previousWorlds[i] = false;
 		for (j = 0; j < ks.worldsCount; j++) {
-			if (suitableWorlds[j]==true && ks.worldsRelations[i][j] == true) {
+			if (suitableWorlds[j] == true && ks.worldsRelations[i][j] == true) {
 				previousWorlds[i] = true;
 			}
 		}
 	}
 }
-void operatorIntersection(kripkeStructure ks, bool firstWorldsList[100], bool secondWorldList[100],bool resultingWorldsList[100]) {
+void operatorIntersection(kripkeStructure ks, bool firstWorldsList[100], bool secondWorldList[100], bool resultingWorldsList[100]) {
 	int i;
 	for (i = 0; i < ks.worldsCount; i++)
 		resultingWorldsList[i] = firstWorldsList[i] * secondWorldList[i];
@@ -185,7 +190,7 @@ void replaceInFormula(char *formula, int nrOfCharsToReplace, char Source[100]) {
 	char auxFormula[100];
 	strcpy_s(auxFormula, MAX_FORMULA_LEN, formula + nrOfCharsToReplace);
 	strcpy_s(formula, MAX_FORMULA_LEN, Source);
-	strcpy_s(formula + strlen(Source)+1, MAX_FORMULA_LEN, auxFormula);
+	strcpy_s(formula + strlen(Source) + 1, MAX_FORMULA_LEN, auxFormula);
 }
 void findWorldsThatSatifyLabel(kripkeStructure ks, char label, bool resultingWorlds[100]) {
 	int i;
@@ -198,17 +203,17 @@ void findWorldsThatSatifyLabel(kripkeStructure ks, char label, bool resultingWor
 		}
 	}
 }
-void extractListFromString(char *formula,char *resultingString) {
+void extractListFromString(char *formula, char *resultingString) {
 	char *pos;
 	if (*formula != '{') {
-		cout << "Formula "<<formula<<" doesn't start from \'{\'!"<<endl;
+		cout << "Formula " << formula << " doesn't start from \'{\'!" << endl;
 		return;
 	}
-	pos=strchr(formula, '}');
-	strncpy_s(resultingString, MAX_FORMULA_LEN,formula, pos - formula);
+	pos = strchr(formula, '}');
+	strncpy_s(resultingString, MAX_FORMULA_LEN, formula, pos - formula);
 
 }
-void invertBoolList(bool listToInvert[100],int length) {
+void invertBoolList(bool listToInvert[100], int length) {
 	int i;
 	for (i = 0; i < length; i++) {
 		if (listToInvert[i] == true) {
@@ -219,41 +224,43 @@ void invertBoolList(bool listToInvert[100],int length) {
 		}
 	}
 }
-void processFormula(kripkeStructure ks, char *formula) {
+void processFormula(kripkeStructure ks, char *formula, int priority) {
 	int i;
 	bool resultingWorldsList[100], resultBool[100], resultBoolAux[100];
 	char resultingWorldsString[100], resultString[100], resultStringAUX[100];
 	cout << formula << endl;
-	if (strncmp(formula, "_", 1) == 0) {
-		processFormula(ks, formula + 1);
+	if (priority >= 0 && strncmp(formula, "_", 1) == 0) {
+		processFormula(ks, formula + 1, 0);
 		extractListFromString(formula + 1, resultString);
 		convertStringToWorldsList(ks, resultString, resultingWorldsList);
-		invertBoolList(resultingWorldsList,ks.worldsCount);
+		invertBoolList(resultingWorldsList, ks.worldsCount);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 1 + strlen(resultString), resultingWorldsString);
-		
-	}else if (strncmp(formula, "EX", 2) == 0) {
-		if (formula[2] != '{') {
-			processFormula(ks, formula + 2);
-			extractListFromString(formula + 2, resultString);
-			convertStringToWorldsList(ks, resultString, resultBool);
-			
-			operatorPreE(ks,resultBool, resultingWorldsList);
-			convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
-			replaceInFormula(formula, 2+strlen(resultString), resultingWorldsString);
-		}
 
 	}
+	else if (priority >= 0 && strncmp(formula, "EX", 2) == 0) {
+		if (formula[2] != '{') {
+			processFormula(ks, formula + 2,0);
+			extractListFromString(formula + 2, resultString);
+			convertStringToWorldsList(ks, resultString, resultBool);
+
+			operatorPreE(ks, resultBool, resultingWorldsList);
+			convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
+			replaceInFormula(formula, 2 + strlen(resultString), resultingWorldsString);
+		}
+		cout << "TEST:" << formula << endl;
+		processFormula(ks, strchr(formula, '}') + 1, 2);
+	}
 	else if (isWorldLabel(ks, *formula)) {
-		if (formula[1] == '^') {
-			processFormula(ks, formula + 2);
+		if (priority >= 2 && formula[1] == '^') {
+			processFormula(ks, formula + 2,2);
 			extractListFromString(formula + 2, resultString);
 			convertStringToWorldsList(ks, resultString, resultBool);
 
 			findWorldsThatSatifyLabel(ks, *formula, resultBoolAux);
 			operatorIntersection(ks, resultBool, resultBoolAux, resultingWorldsList);
 			convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
-			replaceInFormula(formula, 2+strlen(resultString), resultingWorldsString);
+			replaceInFormula(formula, 2 + strlen(resultString), resultingWorldsString);
 		}
 		else {
 			findWorldsThatSatifyLabel(ks, *formula, resultingWorldsList);
@@ -261,10 +268,10 @@ void processFormula(kripkeStructure ks, char *formula) {
 			replaceInFormula(formula, 1, resultingWorldsString);
 		}
 	}
-	else {
-		cout << "Encountered error on " << formula<<"!"<<endl;
+	else if(*formula!='\0'){
+		cout << "Encountered error on " << formula << "!" << endl;
 	}
-	cout << formula<<endl;
+	cout << formula << endl;
 }
 int main() {
 	kripkeStructure ks;
@@ -274,8 +281,8 @@ int main() {
 	readFormula(formula);
 	cout << formula << endl;
 	checkFormula(formula);
-	processFormula(ks, formula);
-	cout <<"\nResult: "<< formula << endl;
+	processFormula(ks, formula, 2);
+	cout << "\nResult: " << formula << endl;
 
 
 
