@@ -1,0 +1,3 @@
+﻿  Source.cpp
+d:\algctl\algctl\source.cpp(13): warning C4101: 'auxp': unreferenced local variable
+  AlgCTL.vcxproj -> D:\AlgCTL\Debug\AlgCTL.exe
