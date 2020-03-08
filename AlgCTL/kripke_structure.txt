@@ -1,4 +1,24 @@
 //worlds count
+6
+//wordls' names
+1 2 3 4 5 6
+//labels
+p q -
+-
+q -
+p -
+q -
+-
+//relations
+2 3 5 -
+3 -
+4 5 -
+3 6 -
+5 6 -
+-
+
+
+//worlds count
 4
 //wordls' names
 q1 q2 q3 q4
@@ -12,3 +32,4 @@ q1 q2 -
 q3 -
 q1 q4 -
 q1 -
+

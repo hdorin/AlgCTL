@@ -5,7 +5,7 @@ using namespace std;
 struct kripkeStructure {
 	int worldsCount;
 	char worldsNames[100][10];
-	int worldsRelations[100][100];
+	bool worldsRelations[100][100];
 	char wordlsLabels[100][20];
 
 };
@@ -54,7 +54,7 @@ void readKripreStructure(kripkeStructure &ks) {
 			}
 			for (j = 0; j < ks.worldsCount; j++) {
 				if (strcmp(worldName, ks.worldsNames[j]) == 0) {
-					ks.worldsRelations[i][j] = 1;
+					ks.worldsRelations[i][j] = true;
 				}
 			}
 		}
@@ -86,10 +86,26 @@ void printKripkeStructure(kripkeStructure ks) {
 	}
 	cout << endl;
 }
+void operatorPre(kripkeStructure ks,int currentWorld,bool previousWorlds[100]) {
+	int i, j;
+	for (i = 0; i < ks.worldsCount; i++) {
+		if (ks.worldsRelations[i][currentWorld] == true) {
+			previousWorlds[i] = true;
+		}
+	}
+}
 int main() {
 	kripkeStructure ks;
 	readKripreStructure(ks);
 	printKripkeStructure(ks);
+	
+
+	bool previousWrolds[100] = {false,false,false,false};
+	operatorPre(ks, 1, previousWrolds);
+	for (int i = 0; i < ks.worldsCount; i++) {
+		cout << previousWrolds[i]<<" ";
+	}
+	
 	int x;
 	cin >> x;
 }
