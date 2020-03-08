@@ -1,1 +1,9 @@
-[|EXpAX|]
+[|EX_p|]
+[|p^_q|]
+
+
+
+_ - negare
+^ - intersectie
+V - reuniune
+EX
