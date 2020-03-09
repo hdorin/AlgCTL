@@ -132,9 +132,9 @@ void operatorPreE(kripkeStructure ks, bool suitableWorlds[100], bool resultingWo
 		}
 	}
 }
+//TOTI succesorii unui predecesor trebuie sa fie din suitableWorlds, adica sa satisfaca q
 void operatorPreA(kripkeStructure ks, bool suitableWorlds[100], bool resultingWorldsList[100]) {
 	int i, j;
-	
 	operatorPre(ks,suitableWorlds, resultingWorldsList);
 	for (i = 0; i < ks.worldsCount; i++) {
 		if (resultingWorldsList[i] == true) {
@@ -147,10 +147,10 @@ void operatorPreA(kripkeStructure ks, bool suitableWorlds[100], bool resultingWo
 	}
 
 }
-bool worldsListsDiffer(kripkeStructure ks, bool worldsList1[100], bool wordlsList2[100]) {
+bool worldsListsDiffer(kripkeStructure ks, bool worldsList1[100], bool worldsList2[100]) {
 	int i;
 	for (i = 0; i < ks.worldsCount; i++)
-		if (worldsList1[i] != wordlsList2[i]) {
+		if (worldsList1[i] != worldsList2[i]) {
 			return true;
 		}
 	return false;
@@ -167,8 +167,8 @@ void operatorReunion(kripkeStructure ks, bool firstWorldsList[100], bool secondW
 		resultingWorldsList[i] = firstWorldsList[i] + secondWorldList[i];
 }
 void operatorMC_AF(kripkeStructure ks, bool suitableWorlds[100], bool resultingWorldsList[100]) {
-	int i, j;
-	bool Y[100], Z[100];
+	int i;
+	bool Y[100], Z[100],worldsListAux[100];
 	for (i = 0; i < ks.worldsCount; i++) {
 		Z[i] = suitableWorlds[i];
 		Y[i] = true;
@@ -177,8 +177,35 @@ void operatorMC_AF(kripkeStructure ks, bool suitableWorlds[100], bool resultingW
 		for (i = 0; i < ks.worldsCount; i++) {
 			Y[i] = Z[i];
 		}
-		operatorPreA(ks, Z, resultingWorldsList);
-		operatorReunion(ks, Z, resultingWorldsList, Z);
+		operatorPreA(ks, Z, worldsListAux);
+		operatorReunion(ks, Z, worldsListAux, Z);
+	}
+	for (i = 0; i < ks.worldsCount; i++) {
+		resultingWorldsList[i] = Y[i];
+	}
+}
+bool worldsListNotIncludedIn(kripkeStructure ks, bool worldsList1[100], bool worldsList2[100]) {
+	int i;
+	for (i = 0; i < ks.worldsCount; i++)
+		if (worldsList1[i]==true && worldsList2[i]==false) {
+			return true;
+		}
+	return false;
+}
+void operatorMC_EU(kripkeStructure ks, bool worldsList1[100], bool worldsList2[100], bool resultingWorldsList[100]) {
+	int i, j;
+	bool Y[100], Z[100],worldsListAux[100];
+	for (i = 0; i < ks.worldsCount; i++) {
+		Z[i] = worldsList2[i];
+		Y[i] = false;
+	}
+	while (worldsListNotIncludedIn(ks, Z, Y)) {
+		operatorReunion(ks, Y, Z, Y);
+		operatorPre(ks, Y, worldsListAux);
+		operatorIntersection(ks, worldsListAux, worldsList1,Z);
+	}
+	for (i = 0; i < ks.worldsCount; i++) {
+		resultingWorldsList[i] = Y[i];
 	}
 }
 void readFormula(char formula[100]) {
@@ -310,15 +337,18 @@ void processFormula(kripkeStructure ks, char *formula, int priority) {
 
 		processFormula(ks, formula, priority);
 	}
-	else if (priority >= 0 && strncmp(formula, "AF", 2) == 0) {
-		cout << "  AF:";
-		processFormula(ks, formula + 2, 0);
-		extractListFromString(formula + 2, resultString);
+	else if (priority >= 1 && strncmp(formula, "E", 1) == 0) {
+		cout << "  EU:";
+		processFormula(ks, formula + 1, 1);
+		processFormula(ks, strchr(formula,'U') + 1, 1);
+		extractListFromString(formula + 1, resultString);
+		extractListFromString(strchr(formula, 'U') + 1, resultStringAux);
 		convertStringToWorldsList(ks, resultString, resultBool);
+		convertStringToWorldsList(ks, resultStringAux, resultBoolAux);
 
-		operatorPreE(ks, resultBool, resultingWorldsList);
+		operatorMC_EU(ks, resultBool,resultBoolAux, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
-		replaceInFormula(formula, 3 + strlen(resultString), resultingWorldsString);
+		replaceInFormula(formula, 4 + strlen(resultString)+strlen(resultStringAux), resultingWorldsString);
 
 		processFormula(ks, formula, priority);
 	}
