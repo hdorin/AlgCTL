@@ -1,9 +1,13 @@
-[|EX_p^q|]
+[|EX_p^t|]
 [|p^_q|]
+
+
 
 
 
 _ - negare
 ^ - intersectie
 V - reuniune
+T - true
+t - false
 EX

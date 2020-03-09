@@ -13,9 +13,6 @@ q3 -
 q1 q4 -
 q1 -
 
-
-
-
 //worlds count
 6
 //wordls' names
@@ -34,6 +31,3 @@ q -
 3 6 -
 5 6 -
 -
-
-
-

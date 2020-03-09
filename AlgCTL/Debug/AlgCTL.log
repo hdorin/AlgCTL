@@ -1,4 +1,3 @@
 ﻿  Source.cpp
-d:\algctl\algctl\source.cpp(225): warning C4101: 'resultStringAUX': unreferenced local variable
-d:\algctl\algctl\source.cpp(223): warning C4101: 'i': unreferenced local variable
+d:\algctl\algctl\source.cpp(231): warning C4101: 'i': unreferenced local variable
   AlgCTL.vcxproj -> D:\AlgCTL\Debug\AlgCTL.exe
