@@ -109,7 +109,7 @@ bool isWorldLabel(kripkeStructure ks, char character) {
 	return strchr(ks.allLabels, character);
 }
 void operatorPre(kripkeStructure ks, bool suitableWorlds[100], bool resultingWorldsList[100]) {
-	int i,j;
+	int i, j;
 	for (i = 0; i < ks.worldsCount; i++) {
 		resultingWorldsList[i] = false;
 	}
@@ -135,7 +135,7 @@ void operatorPreE(kripkeStructure ks, bool suitableWorlds[100], bool resultingWo
 //TOTI succesorii unui predecesor trebuie sa fie din suitableWorlds, adica sa satisfaca q
 void operatorPreA(kripkeStructure ks, bool suitableWorlds[100], bool resultingWorldsList[100]) {
 	int i, j;
-	operatorPre(ks,suitableWorlds, resultingWorldsList);
+	operatorPre(ks, suitableWorlds, resultingWorldsList);
 	for (i = 0; i < ks.worldsCount; i++) {
 		if (resultingWorldsList[i] == true) {
 			for (j = 0; j < ks.worldsCount; j++) {
@@ -168,7 +168,7 @@ void operatorReunion(kripkeStructure ks, bool firstWorldsList[100], bool secondW
 }
 void operatorMC_AF(kripkeStructure ks, bool suitableWorlds[100], bool resultingWorldsList[100]) {
 	int i;
-	bool Y[100], Z[100],worldsListAux[100];
+	bool Y[100], Z[100], worldsListAux[100];
 	for (i = 0; i < ks.worldsCount; i++) {
 		Z[i] = suitableWorlds[i];
 		Y[i] = true;
@@ -187,14 +187,14 @@ void operatorMC_AF(kripkeStructure ks, bool suitableWorlds[100], bool resultingW
 bool worldsListNotIncludedIn(kripkeStructure ks, bool worldsList1[100], bool worldsList2[100]) {
 	int i;
 	for (i = 0; i < ks.worldsCount; i++)
-		if (worldsList1[i]==true && worldsList2[i]==false) {
+		if (worldsList1[i] == true && worldsList2[i] == false) {
 			return true;
 		}
 	return false;
 }
 void operatorMC_EU(kripkeStructure ks, bool worldsList1[100], bool worldsList2[100], bool resultingWorldsList[100]) {
 	int i, j;
-	bool Y[100], Z[100],worldsListAux[100];
+	bool Y[100], Z[100], worldsListAux[100];
 	for (i = 0; i < ks.worldsCount; i++) {
 		Z[i] = worldsList2[i];
 		Y[i] = false;
@@ -202,7 +202,7 @@ void operatorMC_EU(kripkeStructure ks, bool worldsList1[100], bool worldsList2[1
 	while (worldsListNotIncludedIn(ks, Z, Y)) {
 		operatorReunion(ks, Y, Z, Y);
 		operatorPre(ks, Y, worldsListAux);
-		operatorIntersection(ks, worldsListAux, worldsList1,Z);
+		operatorIntersection(ks, worldsListAux, worldsList1, Z);
 	}
 	for (i = 0; i < ks.worldsCount; i++) {
 		resultingWorldsList[i] = Y[i];
@@ -302,7 +302,18 @@ void processFormula(kripkeStructure ks, char *formula, int priority) {
 	char resultingWorldsString[100], resultString[100], resultStringAux[100];
 	cout << formula << endl;
 
-	if (priority >= 0 && strncmp(formula, "_", 1) == 0) {
+	if (strncmp(formula, "(", 1) == 0) {
+		char formulaAux[100];
+		cout << "  (: ";
+		processFormula(ks, formula + 1, 2);
+		replaceInFormula(formula, strlen(formula)-1, formula + 1);
+		//strcpy_s(formulaAux, MAX_FORMULA_LEN, strchr(formula, ')') + 1);
+		replaceInFormula(strchr(formula, ')'), strlen(strchr(formula, ')')) - 1, strchr(formula, ')') + 1);
+
+		processFormula(ks, formula, priority);
+
+	}
+	else if (priority >= 0 && strncmp(formula, "_", 1) == 0) {
 		cout << "  _: ";
 		processFormula(ks, formula + 1, 0);
 		extractListFromString(formula + 1, resultString);
@@ -340,15 +351,15 @@ void processFormula(kripkeStructure ks, char *formula, int priority) {
 	else if (priority >= 1 && strncmp(formula, "E", 1) == 0) {
 		cout << "  EU:";
 		processFormula(ks, formula + 1, 1);
-		processFormula(ks, strchr(formula,'U') + 1, 1);
+		processFormula(ks, strchr(formula, 'U') + 1, 1);
 		extractListFromString(formula + 1, resultString);
 		extractListFromString(strchr(formula, 'U') + 1, resultStringAux);
 		convertStringToWorldsList(ks, resultString, resultBool);
 		convertStringToWorldsList(ks, resultStringAux, resultBoolAux);
 
-		operatorMC_EU(ks, resultBool,resultBoolAux, resultingWorldsList);
+		operatorMC_EU(ks, resultBool, resultBoolAux, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
-		replaceInFormula(formula, 4 + strlen(resultString)+strlen(resultStringAux), resultingWorldsString);
+		replaceInFormula(formula, 4 + strlen(resultString) + strlen(resultStringAux), resultingWorldsString);
 
 		processFormula(ks, formula, priority);
 	}
