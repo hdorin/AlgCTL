@@ -1,4 +1,4 @@
-[|E(EX_p^q)Up|]
+[|E(EX__p^q)U(pvEXp)|]
 [|_A{s1,s5}|]
 [|_AFq|]
 

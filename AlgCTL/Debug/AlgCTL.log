@@ -1,5 +1,3 @@
 ﻿  Source.cpp
-d:\algctl\algctl\source.cpp(196): warning C4101: 'j': unreferenced local variable
-d:\algctl\algctl\source.cpp(300): warning C4101: 'i': unreferenced local variable
-d:\algctl\algctl\source.cpp(306): warning C4101: 'formulaAux': unreferenced local variable
+d:\algctl\algctl\source.cpp(318): warning C4101: 'formulaAux': unreferenced local variable
   AlgCTL.vcxproj -> D:\AlgCTL\Debug\AlgCTL.exe

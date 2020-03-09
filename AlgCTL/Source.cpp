@@ -23,6 +23,7 @@ struct kripkeStructure {
 	char wordlsLabels[100][20];
 	char allLabels[20] = "Tt";
 };
+char *formulaStartingPoint;
 void readKripreStructure(kripkeStructure &ks) {
 	char aux[100];
 	int i, j;
@@ -193,7 +194,7 @@ bool worldsListNotIncludedIn(kripkeStructure ks, bool worldsList1[100], bool wor
 	return false;
 }
 void operatorMC_EU(kripkeStructure ks, bool worldsList1[100], bool worldsList2[100], bool resultingWorldsList[100]) {
-	int i, j;
+	int i;
 	bool Y[100], Z[100], worldsListAux[100];
 	for (i = 0; i < ks.worldsCount; i++) {
 		Z[i] = worldsList2[i];
@@ -296,62 +297,86 @@ void invertBoolList(bool listToInvert[100], int length) {
 		}
 	}
 }
-void processFormula(kripkeStructure ks, char *formula, int priority) {
+void printIndent(int positions) {
 	int i;
+	if (positions > 0) {
+		for (i = 0; i < positions; i++) {
+			cout << "  ";
+		}
+	}
+	else {
+		for (i = 0; i < positions*(-1); i++) {
+			cout << "\b" << "\b";
+		}
+	}
+}
+void processFormula(kripkeStructure ks, char *formula, int priority,int indentation) {
 	bool resultingWorldsList[100], resultBool[100], resultBoolAux[100];
 	char resultingWorldsString[100], resultString[100], resultStringAux[100];
-	cout << formula << endl;
-
+	
 	if (strncmp(formula, "(", 1) == 0) {
 		char formulaAux[100];
-		cout << "  (: ";
-		processFormula(ks, formula + 1, 2);
+		printIndent(indentation);
+		cout << "(: "<<formula<<endl;
+		printIndent(indentation);
+		processFormula(ks, formula + 1, 2, indentation + 1);
 		replaceInFormula(formula, strlen(formula)-1, formula + 1);
 		//strcpy_s(formulaAux, MAX_FORMULA_LEN, strchr(formula, ')') + 1);
 		replaceInFormula(strchr(formula, ')'), strlen(strchr(formula, ')')) - 1, strchr(formula, ')') + 1);
-
-		processFormula(ks, formula, priority);
-
+		
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority,indentation+1);
 	}
 	else if (priority >= 0 && strncmp(formula, "_", 1) == 0) {
-		cout << "  _: ";
-		processFormula(ks, formula + 1, 0);
+		printIndent(indentation);
+		cout << "_: "<<formula<<endl;
+		processFormula(ks, formula + 1, 0, indentation + 1);
 		extractListFromString(formula + 1, resultString);
 		convertStringToWorldsList(ks, resultString, resultingWorldsList);
 		invertBoolList(resultingWorldsList, ks.worldsCount);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 2 + strlen(resultString), resultingWorldsString);
-
-		processFormula(ks, formula, priority);
+		
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority, indentation + 1);
 	}
 	else if (priority >= 0 && strncmp(formula, "EX", 2) == 0) {
-		cout << "  EX:";
-		processFormula(ks, formula + 2, 0);
+		printIndent(indentation);
+		cout << "EX: "<<formula<<endl;
+		processFormula(ks, formula + 2, 0, indentation + 1);
 		extractListFromString(formula + 2, resultString);
 		convertStringToWorldsList(ks, resultString, resultBool);
 
 		operatorPreE(ks, resultBool, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 3 + strlen(resultString), resultingWorldsString);
-
-		processFormula(ks, formula, priority);
+		
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority, indentation + 1);
 	}
 	else if (priority >= 0 && strncmp(formula, "AF", 2) == 0) {
-		cout << "  AF:";
-		processFormula(ks, formula + 2, 0);
+		printIndent(indentation);
+		cout << "AF: "<<formula<<endl;
+		processFormula(ks, formula + 2, 0, indentation + 1);
 		extractListFromString(formula + 2, resultString);
 		convertStringToWorldsList(ks, resultString, resultBool);
 
 		operatorMC_AF(ks, resultBool, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 3 + strlen(resultString), resultingWorldsString);
-
-		processFormula(ks, formula, priority);
+		
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority, indentation + 1);
 	}
 	else if (priority >= 1 && strncmp(formula, "E", 1) == 0) {
-		cout << "  EU:";
-		processFormula(ks, formula + 1, 1);
-		processFormula(ks, strchr(formula, 'U') + 1, 1);
+		printIndent(indentation);
+		cout << "EU: "<<formula<<endl;
+		processFormula(ks, formula + 1, 1, indentation + 1);
+		processFormula(ks, strchr(formula, 'U') + 1, 1, indentation + 1);
 		extractListFromString(formula + 1, resultString);
 		extractListFromString(strchr(formula, 'U') + 1, resultStringAux);
 		convertStringToWorldsList(ks, resultString, resultBool);
@@ -360,12 +385,15 @@ void processFormula(kripkeStructure ks, char *formula, int priority) {
 		operatorMC_EU(ks, resultBool, resultBoolAux, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 4 + strlen(resultString) + strlen(resultStringAux), resultingWorldsString);
-
-		processFormula(ks, formula, priority);
+		
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority, indentation + 1);
 	}
 	else if (priority >= 2 && *formula == '{' && *(strchr(formula, '}') + 1) == '^') {
-		cout << "  ^: ";
-		processFormula(ks, strchr(formula, '}') + 2, 2);
+		printIndent(indentation);
+		cout << "^: "<<formula<<endl;
+		processFormula(ks, strchr(formula, '}') + 2, 2, indentation + 1);
 		extractListFromString(formula, resultString);
 		convertStringToWorldsList(ks, resultString, resultBool);
 		extractListFromString(strchr(formula, '}') + 2, resultStringAux);
@@ -375,10 +403,14 @@ void processFormula(kripkeStructure ks, char *formula, int priority) {
 		operatorIntersection(ks, resultBool, resultBoolAux, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 3 + strlen(resultString) + strlen(resultStringAux), resultingWorldsString);
+
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
 	}
 	else if (priority >= 2 && *formula == '{' && *(strchr(formula, '}') + 1) == 'v') {
-		cout << "v: ";
-		processFormula(ks, strchr(formula, '}') + 2, 2);
+		printIndent(indentation);
+		cout << "v: "<<formula<<endl;
+		processFormula(ks, strchr(formula, '}') + 2, 2, indentation + 1);
 		extractListFromString(formula, resultString);
 		convertStringToWorldsList(ks, resultString, resultBool);
 		extractListFromString(strchr(formula, '}') + 2, resultStringAux);
@@ -388,38 +420,47 @@ void processFormula(kripkeStructure ks, char *formula, int priority) {
 		operatorReunion(ks, resultBool, resultBoolAux, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 3 + strlen(resultString) + strlen(resultStringAux), resultingWorldsString);
+
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
 	}
 	else if (strncmp(formula, "AX", 2) == 0) {
-		cout << "  AX:";
+		printIndent(indentation);
+		cout << "  AX: "<<formula<<endl;
 		strcpy_s(resultString, MAX_FORMULA_LEN, "_EX_");
 		replaceInFormula(formula, 2, resultString);
-		processFormula(ks, formula, priority);
+
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority, indentation + 1);
 	}
 	else if (*formula != '\0' && isWorldLabel(ks, *formula)) {
-		cout << "  label: ";
+		printIndent(indentation);
+		cout << "label: "<<formula<<endl;
 		//processFormula(ks, formula+1, priority);
 		findWorldsThatSatifyLabel(ks, *formula, resultingWorldsList);
 		convertWorldsListToString(ks, resultingWorldsList, resultingWorldsString);
 		replaceInFormula(formula, 1, resultingWorldsString);
-		processFormula(ks, formula, priority);
+
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority, indentation + 1);
 	}
 	else if (*formula != '\0'&&*formula != '{') {
 		cout << "Encountered error on " << formula << "!" << endl;
 		return;
 	}
-	if (*formula != '{') {
-		cout << formula << endl;
-	}
 }
 int main() {
 	kripkeStructure ks;
 	char formula[100];
+	formulaStartingPoint = formula;
 	readKripreStructure(ks);
 	printKripkeStructure(ks);
 	readFormula(formula);
 	cout << formula << endl << endl;
 	checkFormula(formula);
-	processFormula(ks, formula, 2);
+	processFormula(ks, formula, 2,0);
 	if (*(strchr(formula, '}') + 1) != '\0') {
 		cout << "Encountered error on " << (strchr(formula, '}') + 1) << "!" << endl;
 	}
