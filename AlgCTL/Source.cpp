@@ -347,6 +347,26 @@ void processFormula(kripkeStructure ks, char *formula, int priority, int indenta
 		cout << formulaStartingPoint << endl;
 		processFormula(ks, formula, priority, indentation + 1);
 	}
+	else if (priority >= 0 && strncmp(formula, "EG", 2) == 0) {
+		printIndent(indentation);
+		cout << "  EG: " << formula << endl;
+		strcpy_s(resultString, MAX_FORMULA_LEN, "_AF_");
+		replaceInFormula(formula, 2, resultString);
+
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, 0, indentation + 1);
+	}
+	else if (priority >= 0 && strncmp(formula, "AG", 2) == 0) {
+		printIndent(indentation);
+		cout << "  AG: " << formula << endl;
+		strcpy_s(resultString, MAX_FORMULA_LEN, "_EF_");
+		replaceInFormula(formula, 2, resultString);
+
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, 0, indentation + 1);//EF are prioritate 0
+	}
 	else if (priority >= 0 && strncmp(formula, "AF", 2) == 0) {
 		printIndent(indentation);
 		cout << "AF: " << formula << endl;
@@ -362,7 +382,7 @@ void processFormula(kripkeStructure ks, char *formula, int priority, int indenta
 		cout << formulaStartingPoint << endl;
 		processFormula(ks, formula, priority, indentation + 1);
 	}
-	else if (strncmp(formula, "EF", 2) == 0) {
+	else if (priority >= 0 && strncmp(formula, "EF", 2) == 0) {
 		printIndent(indentation);
 		cout << "  EF: " << formula << endl;
 		strcpy_s(resultString, MAX_FORMULA_LEN, "ETU");
@@ -370,13 +390,13 @@ void processFormula(kripkeStructure ks, char *formula, int priority, int indenta
 
 		printIndent(indentation);
 		cout << formulaStartingPoint << endl;
-		processFormula(ks, formula, priority, indentation + 1);
+		processFormula(ks, formula, 1, indentation + 1);//U are prioritate 1
 	}
 	else if (priority >= 1 && strncmp(formula, "E", 1) == 0) {
 		printIndent(indentation);
 		cout << "EU: " << formula << endl;
 		processFormula(ks, formula + 1, 2, indentation + 1);
-		processFormula(ks, strchr(formula, 'U') + 1, 2, indentation + 1);
+		processFormula(ks, strchr(formula, 'U') + 1, 1, indentation + 1);//U are prioritate 1
 		extractListFromString(formula + 1, resultString);
 		extractListFromString(strchr(formula, 'U') + 1, resultStringAux);
 		convertStringToWorldsList(ks, resultString, resultBool);
