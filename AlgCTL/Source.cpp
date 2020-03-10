@@ -362,6 +362,16 @@ void processFormula(kripkeStructure ks, char *formula, int priority, int indenta
 		cout << formulaStartingPoint << endl;
 		processFormula(ks, formula, priority, indentation + 1);
 	}
+	else if (strncmp(formula, "EF", 2) == 0) {
+		printIndent(indentation);
+		cout << "  EF: " << formula << endl;
+		strcpy_s(resultString, MAX_FORMULA_LEN, "ETU");
+		replaceInFormula(formula, 2, resultString);
+
+		printIndent(indentation);
+		cout << formulaStartingPoint << endl;
+		processFormula(ks, formula, priority, indentation + 1);
+	}
 	else if (priority >= 1 && strncmp(formula, "E", 1) == 0) {
 		printIndent(indentation);
 		cout << "EU: " << formula << endl;
