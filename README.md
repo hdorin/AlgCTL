@@ -1,0 +1,1 @@
+Parser I wrote in C++ for the Security Models course. It parses a Computation Tree Logic (CTL) formula and outputs the states that satisfy it. My parser implements priority of operatots and can also succesfully parse (), which change the priority of operations between them.
